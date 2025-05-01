@@ -2,14 +2,14 @@
 
 SDKBIN=llvm-mos/bin
 CC=$(SDKBIN)/mos-clang
-CFLAGS= -Os -Iinc
-FINALFLAGS= -nostartfiles -Lllvm-mos/mos-platform/common/lib
+CFLAGS= -Os -Iinc -mcpu=mosw65c02 
+FINALFLAGS= -Lllvm-mos/mos-platform/common/lib -nostartfiles -mlto-zp=224
 
-out/rom.img: obj/lcd.o out/ src/main.c
+out/rom.img: obj/lcd.o obj/timer.o out/ src/main.c
 	$(CC) $(CFLAGS) $(FINALFLAGS) obj/* src/main.c -o $@
 
-obj/lcd.o: src/lcd.c obj/
-	$(CC) $(CFLAGS) src/lcd.c -c -o $@
+obj/%.o: src/%.c obj/
+	$(CC) $(CFLAGS) $< -c -o $@
 
 %/:
 	mkdir -p $@
