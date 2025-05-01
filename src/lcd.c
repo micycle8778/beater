@@ -1,0 +1,95 @@
+#define ENABLE 0x08
+#define READ_WRITE 0x04
+#define REGISTER_SELECT 0x02
+
+static volatile char* port_b = (char*)0x6000;
+static volatile char* data_direction_b = (char*)0x6002;
+
+static void lcd_wait(void) {
+    *data_direction_b = 0x0f;
+
+    unsigned char response = 0;
+    do {
+        // send read request to lcd
+        *port_b = READ_WRITE;
+        *port_b = READ_WRITE | ENABLE;
+
+        // read response from lcd
+        response = *port_b;
+
+        // read out the rest of the response
+        *port_b = READ_WRITE;
+        *port_b = READ_WRITE | ENABLE;
+    } while (response & 0x80);
+
+    *data_direction_b = 0xff;
+}
+
+void putchar(unsigned char character) {
+    const char higher = character & 0xf0 | REGISTER_SELECT;
+    const char lower = ((character & 0x0f) << 4) | REGISTER_SELECT;
+
+    lcd_wait();
+
+    *port_b = higher;
+    *port_b = higher | ENABLE;
+    *port_b = higher;
+
+    *port_b = lower;
+    *port_b = lower | ENABLE;
+    *port_b = lower;
+}
+
+void puts(const char* s) {
+    while (*s != 0) {
+        putchar(*s);
+        s += 1;
+    }
+}
+
+void lcd_instruction(unsigned char instruction) {
+    const char higher = instruction & 0xf0;
+    const char lower = (instruction & 0x0f) << 4;
+
+    lcd_wait();
+
+    *port_b = higher;
+    *port_b = higher | ENABLE;
+    *port_b = higher;
+
+    *port_b = lower;
+    *port_b = lower | ENABLE;
+    *port_b = lower;
+}
+
+void lcd_enable_cursor(void) {
+    lcd_instruction(0b00001110);
+}
+
+void lcd_disable_cursor(void) {
+    lcd_instruction(0b00001100);
+}
+
+void lcd_clear(void) {
+    lcd_instruction(0x01);
+}
+
+void lcd_return_home(void) {
+    lcd_instruction(0x02);
+}
+
+void lcd_init(void) {
+    *data_direction_b = 0xff;
+
+    // set 4 bit mode
+    char msg = 0b00100000;
+    *port_b = msg;
+    *port_b = msg | ENABLE;
+    *port_b = msg;
+
+    lcd_instruction(0b00101000); // function set: 2 line 5x8 characters
+    lcd_disable_cursor();
+    lcd_instruction(0b00000110); // turn on cursor increment and disable shift
+    lcd_clear();
+    lcd_return_home();
+}
