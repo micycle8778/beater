@@ -42,7 +42,7 @@ bool timer_handle_interrupt() {
 
     // read timer 1 counter low to clear the interrupt
     *timer_1_counter_low;
-    // counter += 1;
+    counter += 1;
     if (idle_counter > 0) idle_counter--;
     return true;
 }

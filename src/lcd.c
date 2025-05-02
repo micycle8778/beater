@@ -87,6 +87,10 @@ void lcd_return_home(void) {
     lcd_instruction(0x02);
 }
 
+void lcd_second_line(void) {
+    lcd_instruction(0xc0); // set ddram address
+}
+
 void lcd_init(void) {
     *data_direction_b = 0xff;
 

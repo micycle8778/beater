@@ -6,7 +6,8 @@ static volatile unsigned char* data_direction_a = (volatile unsigned char*)(0x60
 
 void button_init() {
     // set top 4 bits to read
-    *data_direction_a = 0x0f;
+    // technically not needed because when the VIA resets, it sets all pins to input
+    // *data_direction_a = 0x0f;
 }
 
 inline bool button_up() {
@@ -26,5 +27,12 @@ inline bool button_left() {
 }
 
 inline bool button_pressed(unsigned char mask) {
+    return *port_a & mask;
+}
+
+// wait for a specified button(s) to be pressed
+// returns the button that was pressed
+unsigned char button_detect(unsigned char mask) {
+    while (!button_pressed(mask));
     return *port_a & mask;
 }

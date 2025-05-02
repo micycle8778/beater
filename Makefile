@@ -5,10 +5,10 @@ CC=$(SDKBIN)/mos-clang
 CFLAGS= -Os -Iinc -mcpu=mosw65c02 -Illvm-mos/mos-platform/common/include
 FINALFLAGS= -Lllvm-mos/mos-platform/common/lib -nostartfiles -mlto-zp=224
 
-out/rom.img: obj/lcd.o obj/timer.o obj/button.o out/ src/main.c
+out/rom.img: obj/lcd.o obj/timer.o obj/button.o obj/program_hello.o obj/program_uptime.o obj/program_react.o obj/program_mastermind.o out/ src/main.c
 	$(CC) $(CFLAGS) $(FINALFLAGS) obj/* src/main.c -o $@
 
-obj/%.o: src/%.c obj/
+obj/%.o: src/%.c |obj/
 	$(CC) $(CFLAGS) $< -c -o $@
 
 %/:
