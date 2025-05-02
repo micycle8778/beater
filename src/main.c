@@ -13,9 +13,9 @@ void _irqbrk(void) {
 typedef struct {
     char* name;
     void (*fp)(void);
-} program;
+} program_t;
 
-const program programs[] = {
+const program_t programs[] = {
     { "Hello", program_hello },
     { "Uptime", program_uptime },
     { "React", program_react },
@@ -29,6 +29,19 @@ void _start(void) {
         lcd_init();
         timer_init();
     asm("cli");
+
+    // for (char *s = "Hello, world!"; *s; s++) {
+    //     if (button_sleep(1000, BUTTON_RIGHT)) while (button_right());
+    //     lcd_putchar(*s);
+    // }
+    // lcd_second_line();
+    // lcd_puts("Hello, world!");
+    // while (1);
+
+    // peek at some random location in memory for a random seed
+    unsigned seed = *(volatile unsigned char*)(0x3000);
+    if (seed == 0) seed = 1;
+    srand(seed);
 
     const unsigned char num_programs = sizeof(programs) / sizeof(programs[0]);
     unsigned char top_idx = 0;

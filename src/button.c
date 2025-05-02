@@ -26,13 +26,13 @@ inline bool button_left() {
     return *port_a & BUTTON_LEFT;
 }
 
-inline bool button_pressed(unsigned char mask) {
+inline bool button_pressed(button_t mask) {
     return *port_a & mask;
 }
 
 // wait for a specified button(s) to be pressed
 // returns the button that was pressed
-unsigned char button_detect(unsigned char mask) {
+unsigned char button_detect(button_t mask) {
     while (!button_pressed(mask));
     return *port_a & mask;
 }

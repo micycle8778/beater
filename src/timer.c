@@ -55,7 +55,7 @@ void sleep(uint32_t millis) {
 // sleeps for `millis` milliseconds, ending early if the buttons
 // specified in mask were pressed.
 // returns true if the button was pressed while sleeping, false otherwise.
-bool button_sleep(uint32_t millis, unsigned char mask) {
+bool button_sleep(uint32_t millis, button_t mask) {
     idle_counter = millis;
     while (idle_counter) if (button_pressed(mask)) return true;
 

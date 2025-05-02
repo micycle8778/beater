@@ -6,7 +6,6 @@ static volatile char* port_b = (char*)0x6000;
 static volatile char* data_direction_b = (char*)0x6002;
 
 static void lcd_wait(void) {
-    asm("sei");
 
     *data_direction_b = 0x0f;
 
@@ -26,13 +25,11 @@ static void lcd_wait(void) {
 
     *data_direction_b = 0xff;
 
-    asm("cli");
 }
 
 void lcd_putchar(unsigned char character) {
     lcd_wait();
 
-    asm("sei");
     const char higher = character & 0xf0 | REGISTER_SELECT;
     const char lower = ((character & 0x0f) << 4) | REGISTER_SELECT;
 
@@ -43,7 +40,6 @@ void lcd_putchar(unsigned char character) {
     *port_b = lower;
     *port_b = lower | ENABLE;
     *port_b = lower;
-    asm("cli");
 }
 
 void lcd_puts(const char* s) {
@@ -57,7 +53,6 @@ void lcd_instruction(unsigned char instruction) {
 
     lcd_wait();
 
-    asm("sei");
     const char higher = instruction & 0xf0;
     const char lower = (instruction & 0x0f) << 4;
 
@@ -68,7 +63,6 @@ void lcd_instruction(unsigned char instruction) {
     *port_b = lower;
     *port_b = lower | ENABLE;
     *port_b = lower;
-    asm("cli");
 }
 
 void lcd_enable_cursor(void) {
