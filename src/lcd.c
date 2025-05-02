@@ -30,10 +30,11 @@ static void lcd_wait(void) {
 }
 
 void lcd_putchar(unsigned char character) {
+    lcd_wait();
+
+    asm("sei");
     const char higher = character & 0xf0 | REGISTER_SELECT;
     const char lower = ((character & 0x0f) << 4) | REGISTER_SELECT;
-
-    lcd_wait();
 
     *port_b = higher;
     *port_b = higher | ENABLE;
@@ -42,6 +43,7 @@ void lcd_putchar(unsigned char character) {
     *port_b = lower;
     *port_b = lower | ENABLE;
     *port_b = lower;
+    asm("cli");
 }
 
 void lcd_puts(const char* s) {
@@ -52,10 +54,12 @@ void lcd_puts(const char* s) {
 }
 
 void lcd_instruction(unsigned char instruction) {
-    const char higher = instruction & 0xf0;
-    const char lower = (instruction & 0x0f) << 4;
 
     lcd_wait();
+
+    asm("sei");
+    const char higher = instruction & 0xf0;
+    const char lower = (instruction & 0x0f) << 4;
 
     *port_b = higher;
     *port_b = higher | ENABLE;
@@ -64,6 +68,7 @@ void lcd_instruction(unsigned char instruction) {
     *port_b = lower;
     *port_b = lower | ENABLE;
     *port_b = lower;
+    asm("cli");
 }
 
 void lcd_enable_cursor(void) {
@@ -85,8 +90,30 @@ void lcd_return_home(void) {
 void lcd_init(void) {
     *data_direction_b = 0xff;
 
+    // set 8 bit mode (in case we're resetting w/o disconnecting power)
+    char msg = 0b00110000;
+    *port_b = msg;
+    *port_b = msg | ENABLE;
+    *port_b = msg;
+
+    *port_b = 0;
+    *port_b = ENABLE;
+    *port_b = 0;
+
+    // read busy flag
+    while (1) {
+        *port_b = READ_WRITE;
+        *port_b = READ_WRITE | ENABLE;
+
+        char response = *port_b;
+
+        *port_b = READ_WRITE;
+
+        if ((response & 0x80) == 0) break;
+    }
+
     // set 4 bit mode
-    char msg = 0b00100000;
+    msg = 0b00100000;
     *port_b = msg;
     *port_b = msg | ENABLE;
     *port_b = msg;
@@ -96,4 +123,8 @@ void lcd_init(void) {
     lcd_instruction(0b00000110); // turn on cursor increment and disable shift
     lcd_clear();
     lcd_return_home();
+}
+
+void __putchar(char character) {
+    lcd_putchar(character);
 }

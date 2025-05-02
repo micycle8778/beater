@@ -13,6 +13,8 @@ a custom target):
 * I don't use whatever EEPROM Ben Eater does, I instead have the SST39SF010A.
   If you want to use `make deploy` to flash your EEPROM, change the make file
   appropriately.
+* I have four buttons attached to the VIA chip on pins PA4-PA7, and those
+  buttons are the basis for user input (see [src/button.c](src/button.c)).
 
 ## Building
 

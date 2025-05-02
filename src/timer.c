@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include "button.h"
 
 // core counter of the timer
 // counts milliseconds in a 32bit integer
@@ -46,12 +47,19 @@ bool timer_handle_interrupt() {
     return true;
 }
 
-__attribute__((noinline))
 void sleep(uint32_t millis) {
     idle_counter = millis;
-    while (idle_counter) {
-        asm("wai");
-    }
+    while (idle_counter) asm("wai");
+}
+
+// sleeps for `millis` milliseconds, ending early if the buttons
+// specified in mask were pressed.
+// returns true if the button was pressed while sleeping, false otherwise.
+bool button_sleep(uint32_t millis, unsigned char mask) {
+    idle_counter = millis;
+    while (idle_counter) if (button_pressed(mask)) return true;
+
+    return false;
 }
 
 uint32_t millis() {

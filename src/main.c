@@ -1,5 +1,7 @@
+#include "button.h"
 #include "timer.h"
 #include "lcd.h"
+#include <stdio.h>
 
 void interrupt_handler(void) {
     if (timer_handle_interrupt()) return;
@@ -7,32 +9,33 @@ void interrupt_handler(void) {
 
 __attribute__((interrupt))
 void _irqbrk(void) {
-    asm("sei");
     interrupt_handler();
-    asm("cli");
 }
 
 
-#define SLEEP_MS 1000
+#define BLINK_MS 750
 __attribute__((section(".call_main")))
 void _start(void) {
     asm("sei");
+        button_init();
         timer_init();
         lcd_init();
     asm("cli");
 
+reset:
     lcd_enable_cursor();
+    while (button_right());
+    lcd_clear();
 
     for (char* s = "Hello, world!"; *s; s++) {
         lcd_putchar(*s);
-        sleep(100);
+        if (button_sleep(100, BUTTON_RIGHT)) goto reset;
     }
 
     while (1) {
         lcd_disable_cursor();
-        sleep(1000);
+        if (button_sleep(BLINK_MS, BUTTON_RIGHT)) goto reset;
         lcd_enable_cursor();
-        sleep(1000);
+        if (button_sleep(BLINK_MS, BUTTON_RIGHT)) goto reset;
     }
-
 }
